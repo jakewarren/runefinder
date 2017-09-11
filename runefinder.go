@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/atotto/clipboard"
 )
 
 const ucdFileName = "UnicodeData.txt"
@@ -109,13 +111,19 @@ func main() {
 
 	count := 0
 	format := "U+%04X  %c \t%s\n"
+	var lastCharFound rune
 	for _, uchar := range findRunes(word, index) {
 		if uchar > 0xFFFF {
 			format = "U+%5X %c \t%s\n"
 		}
+		lastCharFound = uchar
 		fmt.Printf(format, uchar, uchar, names[uchar])
 		count++
 	}
 	fmt.Printf("%d characters found\n", count)
 
+	//if only one character was found, copy the character to clipboard
+	if count == 1 {
+		clipboard.WriteAll(string(lastCharFound))
+	}
 }
