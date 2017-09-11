@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -12,10 +13,15 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 const ucdFileName = "UnicodeData.txt"
 const ucdBaseUrl = "http://www.unicode.org/Public/UCD/latest/ucd/"
+
+const runefinderHome = ".runefinder"
+
+var baseDir = path.Join(getHome(), runefinderHome)
 
 func progressDisplay(running <-chan bool) {
 	for {
@@ -98,6 +104,17 @@ func findRunes(query string, index map[string][]rune) []rune {
 	return found
 }
 
+// Get user home directory or exit with a fatal error.
+func getHome() string {
+
+	homeDir, err := homedir.Dir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return homeDir
+}
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage:  runefinder <word>\texample: runefinder cat")
@@ -105,8 +122,12 @@ func main() {
 	}
 	word := os.Args[1]
 
-	dir, _ := os.Getwd()
-	path := path.Join(dir, ucdFileName)
+	//create our app directory if it doesn't exist
+	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
+		os.Mkdir(baseDir, 0755)
+	}
+
+	path := path.Join(baseDir, ucdFileName)
 	index, names := buildIndex(path)
 
 	count := 0
