@@ -141,10 +141,12 @@ func main() {
 		fmt.Printf(format, uchar, uchar, names[uchar])
 		count++
 	}
-	fmt.Printf("%d characters found\n", count)
 
 	//if only one character was found, copy the character to clipboard
 	if count == 1 {
 		clipboard.WriteAll(string(lastCharFound))
+		fmt.Printf("%s copied to the clipboard!\n", string(lastCharFound))
+	} else {
+		fmt.Printf("%d characters found\n", count)
 	}
 }
