@@ -23,6 +23,6 @@ func (s *MySuite) TestFindRunes(c *check.C) {
 		"nonesuch":   []rune{},
 	}
 	for query, found := range tests {
-		c.Assert(findRunes(query, index), check.DeepEquals, found)
+		c.Assert(findRunes(query, index, false), check.DeepEquals, found)
 	}
 }

@@ -5,6 +5,8 @@ Utility to find Unicode characters by name
 
 * cache the unicode data in an app directory instead of using the cwd
 * if only one result was found, copy the result to the clipboard
+* support for partial word search
+* support for regex search
 
 ## Usage
 Sample use:
