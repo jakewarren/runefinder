@@ -37,6 +37,7 @@ type Config struct {
 	partialSearch bool
 	regexSearch   bool
 	displayHelp   bool
+	update        bool
 	query         string
 }
 
@@ -54,12 +55,13 @@ func progressDisplay(running <-chan bool) {
 func getUcdFile(fileName string) {
 
 	url := ucdBaseUrl + ucdFileName
-	fmt.Printf("%s not found\nretrieving from %s\n", ucdFileName, url)
-	running := make(chan bool)
+	fmt.Printf("retrieving %s from %s\n", ucdFileName, url)
+	/*running := make(chan bool)
 	go progressDisplay(running)
 	defer func() {
 		running <- false
 	}()
+	*/
 	response, err := http.Get(url)
 	if err != nil {
 		panic(err)
@@ -80,6 +82,12 @@ func (app *runefinder) buildIndex(fileName string) {
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		getUcdFile(fileName)
 	}
+
+	if app.config.update {
+		getUcdFile(fileName)
+		return
+	}
+
 	content, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		panic(err)
@@ -165,6 +173,7 @@ func main() {
 
 	flag.BoolVarP(&app.config.partialSearch, "partial", "p", false, "run a partial word search")
 	flag.BoolVarP(&app.config.regexSearch, "regex", "r", false, "run a regex search")
+	flag.BoolVar(&app.config.update, "update", false, "update the unicode database")
 	flag.BoolVarP(&app.config.displayHelp, "help", "h", false, "display help")
 	flag.Parse()
 
@@ -174,7 +183,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(flag.Args()) != 1 {
+	if len(flag.Args()) != 1 && !app.config.update {
 		displayUsage()
 		os.Exit(1)
 	}
@@ -187,6 +196,10 @@ func main() {
 
 	path := path.Join(baseDir, ucdFileName)
 	app.buildIndex(path)
+
+	if app.config.update {
+		os.Exit(0)
+	}
 
 	count := 0
 	format := "U+%04X  %c \t%s\n"
