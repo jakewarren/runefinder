@@ -11,16 +11,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/atotto/clipboard"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 )
 
 const ucdFileName = "UnicodeData.txt"
-const ucdBaseUrl = "http://www.unicode.org/Public/UCD/latest/ucd/"
+const ucdBaseURL = "http://www.unicode.org/Public/UCD/latest/ucd/"
 
 const runefinderHome = ".runefinder"
 
@@ -41,27 +40,11 @@ type Config struct {
 	query         string
 }
 
-func progressDisplay(running <-chan bool) {
-	for {
-		select {
-		case <-running:
-			fmt.Println("xxx")
-		case <-time.After(200 * time.Millisecond):
-			fmt.Print(".")
-		}
-	}
-}
-
 func getUcdFile(fileName string) {
 
-	url := ucdBaseUrl + ucdFileName
+	url := ucdBaseURL + ucdFileName
 	fmt.Printf("retrieving %s from %s\n", ucdFileName, url)
-	/*running := make(chan bool)
-	go progressDisplay(running)
-	defer func() {
-		running <- false
-	}()
-	*/
+
 	response, err := http.Get(url)
 	if err != nil {
 		panic(err)
@@ -128,7 +111,7 @@ func (app *runefinder) findRunes(query string) []rune {
 	query = strings.ToUpper(query)
 
 	if app.config.partialSearch {
-		for key, _ := range app.index {
+		for key := range app.index {
 			if strings.Contains(key, query) {
 				for _, uchar := range app.index[key] {
 					found = append(found, uchar)
@@ -141,7 +124,7 @@ func (app *runefinder) findRunes(query string) []rune {
 	if app.config.regexSearch {
 
 		reggie := regexp.MustCompile(query)
-		for idx, _ := range app.names {
+		for idx := range app.names {
 			if reggie.MatchString(app.names[idx]) {
 				found = append(found, idx)
 			}
@@ -189,13 +172,13 @@ func main() {
 	}
 	word := flag.Arg(0)
 
-	//create our runefinder directory if it doesn't exist
+	// create our runefinder directory if it doesn't exist
 	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
 		os.Mkdir(baseDir, 0755)
 	}
 
-	path := path.Join(baseDir, ucdFileName)
-	app.buildIndex(path)
+	filePath := path.Join(baseDir, ucdFileName)
+	app.buildIndex(filePath)
 
 	if app.config.update {
 		os.Exit(0)
@@ -213,7 +196,7 @@ func main() {
 		count++
 	}
 
-	//if only one character was found, copy the character to clipboard
+	// if only one character was found, copy the character to clipboard
 	if count == 1 {
 		clipboard.WriteAll(string(lastCharFound))
 		fmt.Printf("%s copied to the clipboard!\n", string(lastCharFound))
